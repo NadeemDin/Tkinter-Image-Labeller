@@ -12,40 +12,55 @@ class ImageFlickerGUI:
         self.image_label = tk.Label(self.master)
         self.image_label.pack()
 
-        self.prev_button = tk.Button(self.master, text="Previous", command=self.prev_image)
+        # Button frame to contain all buttons
+        button_frame = tk.Frame(self.master)
+        button_frame.pack(side=tk.BOTTOM, pady=5)
+
+        self.prev_button = tk.Button(button_frame, text="Previous", command=self.prev_image)
         self.prev_button.pack(side=tk.LEFT)
 
-        self.next_button = tk.Button(self.master, text="Next", command=self.next_image)
-        self.next_button.pack(side=tk.RIGHT)
+        self.next_button = tk.Button(button_frame, text="Next", command=self.next_image)
+        self.next_button.pack(side=tk.LEFT)
+
+        self.load_button = tk.Button(button_frame, text="Load Images", command=self.load_images)
+        self.load_button.pack(side=tk.LEFT)
+
+        self.save_button = tk.Button(button_frame, text="Save bbox & Label data", command=self.save_annotation)
+        self.save_button.pack(side=tk.LEFT)
 
         self.save_frame = tk.Frame(self.master, bd=2, relief=tk.GROOVE)
-        self.save_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=5)
+        self.save_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, padx=5, pady=5)
 
-        self.save_label = tk.Label(self.save_frame, text="Save Options:", padx=5, pady=5)
+        self.save_label = tk.Label(self.save_frame, text="JSON File Save Options:", padx=5, pady=5)
         self.save_label.pack(side=tk.TOP)
 
         self.save_option_var = tk.IntVar(value=1)  # Default to save individual files
-        self.save_option_individual = tk.Radiobutton(self.save_frame, text="Multiple JSON Files", variable=self.save_option_var, value=1)
+        self.save_option_individual = tk.Radiobutton(self.save_frame, text="Save to 'file_name'.json", variable=self.save_option_var, value=1)
         self.save_option_individual.pack(side=tk.LEFT, padx=10)
 
-        self.save_option_json = tk.Radiobutton(self.save_frame, text="One JSON File", variable=self.save_option_var, value=2)
+        self.save_option_json = tk.Radiobutton(self.save_frame, text="Save to master_data.json", variable=self.save_option_var, value=2)
         self.save_option_json.pack(side=tk.LEFT, padx=10)
 
-        self.save_button = tk.Button(self.master, text="Save Bounding Box data", command=self.save_annotation)
-        self.save_button.pack(side=tk.BOTTOM)
-        
-        self.load_button = tk.Button(self.master, text="Load Images", command=self.load_images)
-        self.load_button.pack(side=tk.BOTTOM)
+        message_frame = tk.Frame(self.master, bd=2, relief=tk.GROOVE)
+        message_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
-        self.scrollbar = tk.Scrollbar(self.master)
+        self.message_listbox = tk.Listbox(message_frame, height=3)
+        self.message_listbox.pack(side=tk.LEFT,pady =(5,5), fill=tk.BOTH, expand=True)
+
+        self.scrollbar = tk.Scrollbar(message_frame)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.message_listbox.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.message_listbox.yview)
         
+        self.label_frame = tk.Frame(self.master, bd=2, relief=tk.GROOVE)
+        self.label_frame.pack(side=tk.BOTTOM, pady=5, fill=tk.X)
 
-        self.message_listbox = tk.Listbox(self.master, yscrollcommand=self.scrollbar.set, height=3)
-        self.message_listbox.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        self.label_text = tk.Label(self.label_frame, text="Enter object label:")
+        self.label_text.pack(side=tk.TOP)
 
-        self.label_entry = tk.Entry(self.master, width=30)
-        self.label_entry.pack(side=tk.BOTTOM, pady=5)
+        self.label_entry = tk.Entry(self.label_frame, width=30)
+        self.label_entry.pack(side=tk.BOTTOM, pady=(0,5))
 
         self.images = []
         self.current_image_index = 0
@@ -77,9 +92,9 @@ class ImageFlickerGUI:
         current_image = self.current_image_index + 1
         if total_images > 0:
             image_filename = os.path.basename(self.images[self.current_image_index])
-            self.master.title(f"Image Flicker {current_image}/{total_images} - {image_filename}")
+            self.master.title(f"ObjectMapper {current_image}/{total_images} - {image_filename}")
         else:
-            self.master.title("Image Flicker")
+            self.master.title("ObjectMapper")
 
     def load_images(self):
         folder_path = filedialog.askdirectory(parent=self.master)
@@ -95,7 +110,7 @@ class ImageFlickerGUI:
     def show_image(self):
         self.image = Image.open(self.images[self.current_image_index])
         self.tk_image = ImageTk.PhotoImage(self.image)
-        self.image_label.config(image=self.tk_image)
+        self.image_label.config(image=self.tk_image, anchor="n")
 
     def prev_image(self):
         if self.current_image_index > 0:
@@ -140,4 +155,3 @@ class ImageFlickerGUI:
     def update_message(self, text):
         self.message_listbox.insert(0, text)
         self.scrollbar.config(command=self.message_listbox.yview)
-
