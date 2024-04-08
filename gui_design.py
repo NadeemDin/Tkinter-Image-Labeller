@@ -2,7 +2,6 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk, ImageDraw
-from datetime import datetime
 from functionality import Functionality
 
 class ImageFlickerGUI:
@@ -26,21 +25,21 @@ class ImageFlickerGUI:
         self.save_label.pack(side=tk.TOP)
 
         self.save_option_var = tk.IntVar(value=1)  # Default to save individual files
-        self.save_option_individual = tk.Radiobutton(self.save_frame, text="Individual Files", variable=self.save_option_var, value=1)
+        self.save_option_individual = tk.Radiobutton(self.save_frame, text="Multiple JSON Files", variable=self.save_option_var, value=1)
         self.save_option_individual.pack(side=tk.LEFT, padx=10)
 
         self.save_option_json = tk.Radiobutton(self.save_frame, text="One JSON File", variable=self.save_option_var, value=2)
         self.save_option_json.pack(side=tk.LEFT, padx=10)
 
-        self.save_button = tk.Button(self.master, text="Save", command=self.save_annotation)
+        self.save_button = tk.Button(self.master, text="Save Bounding Box data", command=self.save_annotation)
         self.save_button.pack(side=tk.BOTTOM)
         
-
-        #self.message_label = tk.Label(self.master, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        #self.message_label.pack(side=tk.BOTTOM, fill=tk.X)
+        self.load_button = tk.Button(self.master, text="Load Images", command=self.load_images)
+        self.load_button.pack(side=tk.BOTTOM)
 
         self.scrollbar = tk.Scrollbar(self.master)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
 
         self.message_listbox = tk.Listbox(self.master, yscrollcommand=self.scrollbar.set, height=3)
         self.message_listbox.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
@@ -50,7 +49,6 @@ class ImageFlickerGUI:
 
         self.images = []
         self.current_image_index = 0
-        self.load_images()
 
         # Binding keyboard events
         self.master.bind("<Left>", lambda event: self.prev_image())
@@ -69,7 +67,7 @@ class ImageFlickerGUI:
         self.end_y = None
 
         # Update title to display image count
-        self.title_init()
+        self.update_title()
 
         # Functionality
         self.func = Functionality(self)
@@ -77,24 +75,25 @@ class ImageFlickerGUI:
     def update_title(self):
         total_images = len(self.images)
         current_image = self.current_image_index + 1
-        self.master.title(f"Image Flicker {current_image}/{total_images}")
-
-    def title_init(self):
-        total_images = len(self.images)
-        current_image = self.current_image_index + 1
-        self.master.title(f"Image Flicker {current_image}/{total_images}")
+        if total_images > 0:
+            image_filename = os.path.basename(self.images[self.current_image_index])
+            self.master.title(f"Image Flicker {current_image}/{total_images} - {image_filename}")
+        else:
+            self.master.title("Image Flicker")
 
     def load_images(self):
-        folder_path = "images"
-        if os.path.exists(folder_path):
+        folder_path = filedialog.askdirectory(parent=self.master)
+        if folder_path:
             self.images = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith(('.jpg', '.png', '.jpeg'))]
             if self.images:
+                self.current_image_index = 0
                 self.show_image()
+                self.update_title()
+                self.master.update_idletasks()
+                self.label_entry.focus_set()
 
     def show_image(self):
-        self.current_image_path = self.images[self.current_image_index]
-        self.image = Image.open(self.current_image_path)
-        #self.image.thumbnail((400, 400))  # Resize image to fit within a 400x400 box
+        self.image = Image.open(self.images[self.current_image_index])
         self.tk_image = ImageTk.PhotoImage(self.image)
         self.image_label.config(image=self.tk_image)
 
@@ -102,16 +101,15 @@ class ImageFlickerGUI:
         if self.current_image_index > 0:
             self.current_image_index -= 1
             self.show_image()
-            self.title_init()
+            self.update_title()
 
     def next_image(self):
         if self.current_image_index < len(self.images) - 1:
             self.current_image_index += 1
             self.show_image()
-            self.title_init()
+            self.update_title()
 
     def start_drag(self, event):
-        # Record the starting coordinates of the mouse drag
         self.dragging = True
         self.start_x = event.x
         self.start_y = event.y
@@ -119,25 +117,22 @@ class ImageFlickerGUI:
         self.end_y = event.y
 
     def drag(self, event):
-        # Update the end coordinates of the mouse drag
         self.end_x = event.x
         self.end_y = event.y
         self.draw_bounding_box()
 
     def end_drag(self, event):
-        # Draw bounding box when mouse drag ends
         self.draw_bounding_box()
         self.dragging = False
 
     def draw_bounding_box(self):
         if self.dragging:
-            # Draw bounding box on the image
             image_copy = self.image.copy()
             draw = ImageDraw.Draw(image_copy)
             draw.rectangle([self.start_x, self.start_y, self.end_x, self.end_y], outline="red")
             tk_image_copy = ImageTk.PhotoImage(image_copy)
             self.image_label.config(image=tk_image_copy)
-            self.image_label.image = tk_image_copy  # Keep a reference to avoid garbage collection
+            self.image_label.image = tk_image_copy
 
     def save_annotation(self, event=None):
         self.func.save_annotation()
@@ -145,3 +140,4 @@ class ImageFlickerGUI:
     def update_message(self, text):
         self.message_listbox.insert(0, text)
         self.scrollbar.config(command=self.message_listbox.yview)
+

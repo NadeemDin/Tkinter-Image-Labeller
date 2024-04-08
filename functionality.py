@@ -12,12 +12,13 @@ class Functionality:
             if not label:
                 self.gui.update_message("Please enter a label for the bounding box.")
                 return
+            folder_path = os.path.dirname(self.gui.images[self.gui.current_image_index])
             if self.gui.save_option_var.get() == 1:  # Save individual files
-                self.save_individual_annotation(label)
+                self.save_individual_annotation(label, folder_path)
             else:  # Save one JSON file
-                self.save_json_annotation(label)
+                self.save_json_annotation(label, folder_path)
 
-    def save_individual_annotation(self, label):
+    def save_individual_annotation(self, label, folder_path):
         # Get bounding box coordinates
         xmin = min(self.gui.start_x, self.gui.end_x)
         ymin = min(self.gui.start_y, self.gui.end_y)
@@ -36,7 +37,7 @@ class Functionality:
         }
 
         # JSON filename for the current image
-        json_filename = os.path.splitext(self.gui.current_image_path)[0] + ".json"
+        json_filename = os.path.splitext(self.gui.images[self.gui.current_image_index])[0] + ".json"
 
         # If the JSON file already exists, load existing annotations
         if os.path.exists(json_filename):
@@ -53,13 +54,16 @@ class Functionality:
             json.dump(annotations, f)
 
         timestamp = datetime.now().strftime("%d/%m  %H:%M:%S")
-        message = f"{timestamp} {os.path.basename(self.gui.current_image_path)}: {label} Saved"
+        # Get the base name of the saved file
+        saved_file_basename = os.path.basename(json_filename)
+        # Construct the message string
+        message = f"{timestamp} {saved_file_basename}: {label} Saved ({folder_path})"
         self.gui.update_message(message)
 
-    def save_json_annotation(self, label):
+    def save_json_annotation(self, label, folder_path):
         # Create annotation dictionary for the current image
         annotation = {
-            "image_filename": os.path.basename(self.gui.current_image_path),
+            "image_filename": os.path.basename(self.gui.images[self.gui.current_image_index]),
             "label": label,
             "bounding_box": {
                 "xmin": self.gui.start_x,
@@ -85,5 +89,8 @@ class Functionality:
             json.dump(annotations, f)
 
         timestamp = datetime.now().strftime("%d/%m %H:%M:%S")
-        message = f"{timestamp} {os.path.basename(self.gui.current_image_path)}: {label} Saved"
+        # Get the base name of the saved file
+        saved_file_basename = os.path.basename(json_filename)
+        # Construct the message string
+        message = f"{timestamp} {saved_file_basename}: {label} Saved ({folder_path})"
         self.gui.update_message(message)
