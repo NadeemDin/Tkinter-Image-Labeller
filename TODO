@@ -1,3 +1,7 @@
-1. look at file path formatting to allow ingestion into plotter -- look at the // etc \\ etc
-2. images need to be scaled when viewing and drawing bbox - bbox coords need to be rescaled to fit onto the original image
-3. use plotter to evaluate. 
+Need to figure out a method for labelling larger images.
+either i scale them down, or add some zoom in functionality which hopefully still works with the bb drawing mechanism
+
+- look into auto encoding 
+- look into ViTs
+
+   
