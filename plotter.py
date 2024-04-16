@@ -28,8 +28,7 @@ def plot_image_with_bboxes(data):
 # JSON data provided
 json_data = [
   {
-    "file_path": "C:\\Users\\Pyrex_000\\Desktop\\github_projects\\Tkinter-Image-Labeller\\images\\cat.png",
-    "width": 318,
+    "file_path": "C:/Users/Pyrex_000/Desktop/github_projects/Tkinter-Image-Labeller/images\\cat.png",
     "height": 159,
     "annotations": [
       {
@@ -44,3 +43,5 @@ json_data = [
     ]
   }
 ]
+
+plot_image_with_bboxes(json_data)
