@@ -51,7 +51,7 @@ class Functionality:
 
         # Add image data if not already present
         image_data = [{
-            "file_path": os.path.join(folder_path, os.path.basename(file_path)),
+            "file_path": file_path,
             "width": width,
             "height": height,
             "annotations": self.gui.annotations
@@ -93,7 +93,7 @@ class Functionality:
             # Check if there's an entry for the current image
             found = False
             for image_data in all_data:
-                if image_data["file_path"] == os.path.join(folder_path, os.path.basename(file_path)):
+                if image_data["file_path"] == file_path:
                     # Append the annotation to the existing entry
                     image_data["annotations"].append(annotation)
                     found = True
@@ -102,7 +102,7 @@ class Functionality:
             # If no entry was found, create a new one
             if not found:
                 image_data = {
-                    "file_path": os.path.join(folder_path, os.path.basename(file_path)),
+                    "file_path": file_path,
                     "width": width,
                     "height": height,
                     "annotations": [annotation]
@@ -111,7 +111,7 @@ class Functionality:
         else:
             # If the JSON file doesn't exist, create a new one with the annotation data
             all_data = [{
-                "file_path": os.path.join(folder_path, os.path.basename(file_path)),
+                "file_path": file_path,
                 "width": width,
                 "height": height,
                 "annotations": [annotation]
